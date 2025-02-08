@@ -1,0 +1,14 @@
+[colorschemes.default]
+border = "white"
+text = "white"
+highlight = "blue"
+
+[colorschemes.dark]
+border = "gray"
+text = "white"
+highlight = "red"
+
+[colorschemes.light]
+border = "black"
+text = "black"
+highlight = "green"
