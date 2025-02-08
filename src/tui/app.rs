@@ -1,38 +1,56 @@
 use crate::config::colors::ColorScheme;
 use crate::config::colors::Config;
+use crate::discord::client::fetch_private_channels;
+use crate::discord::client::start_discord_client;
+use dotenvy::dotenv;
 use ratatui::widgets::ListState;
+use serenity::http::Http;
+use serenity::model::channel::PrivateChannel;
 use std::collections::HashMap;
+use std::env;
+use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct App {
     pub channels: Vec<String>,
     pub private_messages: Vec<String>,
+    pub private_channels: Vec<Arc<PrivateChannel>>,
     pub selected_tab: usize,
     pub selected_channel: usize,
     pub list_state: ListState,
     pub messages: HashMap<String, Vec<String>>,
     pub colorschemes: HashMap<String, ColorScheme>,
     pub current_colorscheme: String,
+    pub http: Option<Arc<Http>>,
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub async fn new() -> Self {
+        dotenv().expect("Failed to load .env file");
+        let token = env::var("DISCORD_TOKEN").expect("DISCORD_TOKEN not set in .env file");
+
         let mut list_state = ListState::default();
         list_state.select(Some(0));
 
-        // Init the colors
         let colorschemes = Config::load().colorschemes;
         let current_colorscheme = "default".to_string();
+
+        let http = Arc::new(Http::new(&token));
+
+        start_discord_client(&token).await;
+        let private_channels = fetch_private_channels(&http).await.unwrap_or_default();
 
         Self {
             channels: vec!["general".to_string(), "random".to_string()],
             private_messages: vec!["user1".to_string(), "user2".to_string()],
+            private_channels,
             selected_tab: 0,
             selected_channel: 0,
             list_state,
             messages: HashMap::new(),
             colorschemes,
             current_colorscheme,
+            http: Some(http),
         }
     }
 

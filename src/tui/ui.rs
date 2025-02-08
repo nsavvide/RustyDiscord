@@ -1,11 +1,9 @@
 use ratatui::{
-    backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
-    prelude::CrosstermBackend,
     style::{Color, Modifier, Style},
     text::Span,
     widgets::{Block, Borders, List, ListItem, Paragraph, Tabs},
-    Frame
+    Frame,
 };
 
 use ratatui::prelude::*;
@@ -49,17 +47,15 @@ pub fn render(f: &mut Frame, app: &App) {
 fn render_sidebar(f: &mut Frame, app: &App, area: Rect) {
     let colorscheme = &app.colorschemes[&app.current_colorscheme];
 
-    // Split the sidebar area into two parts: one for the tabs and one for the list
-    let sidebar_chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
-        .split(area);
-
     let tabs = Tabs::new(vec!["Channels", "Private Messages"])
         .block(Block::default().borders(Borders::ALL).title("Tabs"))
         .select(app.selected_tab)
         .style(Style::default().fg(get_color(&colorscheme.text)))
-        .highlight_style(Style::default().fg(get_color(&colorscheme.highlight)).add_modifier(Modifier::BOLD));
+        .highlight_style(
+            Style::default()
+                .fg(get_color(&colorscheme.highlight))
+                .add_modifier(Modifier::BOLD),
+        );
 
     f.render_widget(tabs, area);
 
@@ -69,17 +65,21 @@ fn render_sidebar(f: &mut Frame, app: &App, area: Rect) {
             .map(|channel| ListItem::new(Span::raw(channel)))
             .collect()
     } else {
-        app.private_messages
+        app.private_channels
             .iter()
-            .map(|pm| ListItem::new(Span::raw(pm)))
+            .map(|pm| ListItem::new(Span::raw(&pm.recipient.name)))
             .collect()
     };
 
     let list = List::new(list_items)
         .block(Block::default().borders(Borders::ALL).title("List"))
-        .highlight_style(Style::default().fg(get_color(&colorscheme.highlight)).add_modifier(Modifier::BOLD));
+        .highlight_style(
+            Style::default()
+                .fg(get_color(&colorscheme.highlight))
+                .add_modifier(Modifier::BOLD),
+        );
 
-    f.render_stateful_widget(list, sidebar_chunks[1], &mut app.list_state.clone());
+    f.render_stateful_widget(list, area, &mut app.list_state.clone());
 }
 
 fn render_chat_area(f: &mut Frame, app: &App, area: Rect) {
@@ -93,7 +93,12 @@ fn render_chat_area(f: &mut Frame, app: &App, area: Rect) {
 
     let text: Vec<Line> = messages
         .iter()
-        .map(|msg| Line::from(Span::styled(msg, Style::default().fg(get_color(&colorscheme.text)))))
+        .map(|msg| {
+            Line::from(Span::styled(
+                msg,
+                Style::default().fg(get_color(&colorscheme.text)),
+            ))
+        })
         .collect();
 
     let paragraph = Paragraph::new(text)
