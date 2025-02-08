@@ -5,7 +5,7 @@ use ratatui::{
     style::{Color, Modifier, Style},
     text::Span,
     widgets::{Block, Borders, List, ListItem, Paragraph, Tabs},
-    Frame,
+    Frame
 };
 
 use ratatui::prelude::*;
@@ -47,22 +47,22 @@ pub fn render(f: &mut Frame, app: &App) {
 }
 
 fn render_sidebar(f: &mut Frame, app: &App, area: Rect) {
+    let colorscheme = &app.colorschemes[&app.current_colorscheme];
+
     // Split the sidebar area into two parts: one for the tabs and one for the list
     let sidebar_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
         .split(area);
 
-    // Render the tabs
     let tabs = Tabs::new(vec!["Channels", "Private Messages"])
         .block(Block::default().borders(Borders::ALL).title("Tabs"))
         .select(app.selected_tab)
-        .style(Style::default().fg(Color::White))
-        .highlight_style(Style::default().add_modifier(Modifier::BOLD));
+        .style(Style::default().fg(get_color(&colorscheme.text)))
+        .highlight_style(Style::default().fg(get_color(&colorscheme.highlight)).add_modifier(Modifier::BOLD));
 
-    f.render_widget(tabs, sidebar_chunks[0]);
+    f.render_widget(tabs, area);
 
-    // Render the list
     let list_items: Vec<ListItem> = if app.selected_tab == 0 {
         app.channels
             .iter()
@@ -77,12 +77,14 @@ fn render_sidebar(f: &mut Frame, app: &App, area: Rect) {
 
     let list = List::new(list_items)
         .block(Block::default().borders(Borders::ALL).title("List"))
-        .highlight_style(Style::default().add_modifier(Modifier::BOLD));
+        .highlight_style(Style::default().fg(get_color(&colorscheme.highlight)).add_modifier(Modifier::BOLD));
 
     f.render_stateful_widget(list, sidebar_chunks[1], &mut app.list_state.clone());
 }
 
 fn render_chat_area(f: &mut Frame, app: &App, area: Rect) {
+    let colorscheme = &app.colorschemes[&app.current_colorscheme];
+
     let messages = app
         .messages
         .get(&app.channels[app.selected_channel])
@@ -91,7 +93,7 @@ fn render_chat_area(f: &mut Frame, app: &App, area: Rect) {
 
     let text: Vec<Line> = messages
         .iter()
-        .map(|msg| Line::from(Span::raw(msg.as_str())))
+        .map(|msg| Line::from(Span::styled(msg, Style::default().fg(get_color(&colorscheme.text)))))
         .collect();
 
     let paragraph = Paragraph::new(text)
@@ -101,8 +103,24 @@ fn render_chat_area(f: &mut Frame, app: &App, area: Rect) {
     f.render_widget(paragraph, area);
 }
 
-fn render_input_bar(f: &mut Frame, _app: &App, area: Rect) {
+fn render_input_bar(f: &mut Frame, app: &App, area: Rect) {
+    let colorscheme = &app.colorschemes[&app.current_colorscheme];
+
     let input = Paragraph::new("Type your message here...")
-        .block(Block::default().borders(Borders::ALL).title("Input"));
+        .block(Block::default().borders(Borders::ALL).title("Input"))
+        .style(Style::default().fg(get_color(&colorscheme.text)));
+
     f.render_widget(input, area);
+}
+
+fn get_color(color_name: &str) -> Color {
+    match color_name {
+        "white" => Color::White,
+        "black" => Color::Black,
+        "red" => Color::Red,
+        "green" => Color::Green,
+        "blue" => Color::Blue,
+        "gray" => Color::Gray,
+        _ => Color::White, // Default color
+    }
 }

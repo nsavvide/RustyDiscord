@@ -8,6 +8,8 @@ use std::io;
 mod tui;
 use crate::tui::{app::App, ui::render, input::handle_input};
 
+mod config;
+
 #[tokio::main]
 async fn main() -> io::Result<()> {
     // Initialize the TUI

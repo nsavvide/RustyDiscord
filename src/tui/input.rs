@@ -11,6 +11,7 @@ pub fn handle_input(app: &mut App) -> bool {
             KeyCode::BackTab => app.previous_tab(),
             KeyCode::Down => app.next_channel(),
             KeyCode::Up => app.previous_channel(),
+            KeyCode::Char('c') => app.next_colorscheme(),
             _ => {}
         }
     }
