@@ -37,7 +37,6 @@ impl App {
 
         let http = Arc::new(Http::new(&token));
 
-        start_discord_client(&token).await;
         let private_channels = fetch_private_channels(&http).await.unwrap_or_default();
 
         Self {

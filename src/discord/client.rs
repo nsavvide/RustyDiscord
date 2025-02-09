@@ -7,7 +7,6 @@ use serenity::{
     http::Http,
     model::{channel::PrivateChannel, gateway::Ready},
     prelude::{Context, EventHandler, GatewayIntents},
-    Result as SerenityResult,
 };
 
 struct Handler;
